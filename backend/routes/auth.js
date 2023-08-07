@@ -18,6 +18,7 @@ router.post(
     }),
   ],
   async (req, res) => {
+    let success = false
     // If there are errors, return bad request and the errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -29,7 +30,7 @@ router.post(
       if (user) {
         return res
           .status(400)
-          .json({ error: "Sorry a user with this email already exists" });
+          .json({success, error: "Sorry a user with this email already exists" });
       }
       // password hashing
       const salt = await bcrypt.genSalt(10);
@@ -50,7 +51,8 @@ router.post(
     
 
       // res.json(user);
-      res.json({authtoken})
+      success = true
+      res.json({success,authtoken})
 
       // catch error
     } catch (error) {
@@ -68,6 +70,7 @@ router.post(
     body("password", "password cannot be blank").exists(),
   ],
   async (req, res) => {
+    let success = false;
     // If thre are errors, return bad request and the errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -78,12 +81,12 @@ router.post(
     try{
       let user = await User.findOne({email});
       if(!user){
-        return res.status(400).json({error:"please try to login with correct credentials"})
+        return res.status(400).json({success, error:"please try to login with correct credentials"})
       }
 
       const passwordcompare = await bcrypt.compare(password, user.password);
       if(!passwordcompare){
-        return res.status(400).json({error:"please try to login with correct credentials"})
+        return res.status(400).json({success, error:"please try to login with correct credentials"})
       }
     // authtoken data
       const data ={
@@ -93,7 +96,8 @@ router.post(
       }
     // authtoken
      const authtoken = jwt.sign(data,JWT_SECRET)
-     res.send({authtoken})
+     success = true;
+     res.send({success, authtoken})
     } catch (error) {
       console.error(error.message);
       res.status(500).send("Interval Server Error");
